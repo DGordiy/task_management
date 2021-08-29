@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/html">
+
+<div th:replace="/fragment/header :: header(title='Task')"></div>
+
+<body>
+
+<div th:replace="/fragment/menu"></div>
+
+<div class="container-fluid" th:object="${task}">
+    <h2 th:text="*{name}"></h2>
+    <p th:text="*{description}"></p>
+    <p th:if="*{project != null}">Project: [[*{project.name}]]</p>
+</div>
+
+<div class="container-fluid" th:with="dateTimeFormat='SHORT'">
+    <div class="row">
+        <div class="col-9">
+            <div class="container">
+                <form th:object="${comment}" th:action="@{/task/add_comment}" method="post">
+                    <input type="hidden" th:field="*{task}">
+                    <div class="mb-3">
+                    <textarea class="form-control" id="comment" th:field="*{description}" placeholder="Your comment"
+                              rows="3" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-primary">Add a comment</button>
+                </form>
+            </div>
+            <div class="container" th:replace="/fragment/task_comment_list :: comments(task=${task})"/>
+        </div>
+
+        <div class="col">
+            <div class="container">
+                <form th:object="${task}" th:action="@{/task/save_from_view}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <input type="hidden" th:field="*{name}">
+                    <input type="hidden" th:field="*{description}">
+
+                    <div class="mb-3">
+                        <label for="status">Status</label>
+                        <select class="form-select" id="status" th:field="*{status.id}">
+                            <option th:each="taskStatus: ${taskStatuses}"
+                                    th:value="${taskStatus.id}"
+                                    th:text="${taskStatus.name}"
+                                    th:class="${'text-' + taskStatus.color.toLowerCase}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <strong>Details</strong>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="assignee">Assignee</label>
+                                <select class="form-select" id="assignee" th:field="*{assignee.id}">
+                                    <option th:each="user: ${task.users}"
+                                            th:value="${user.id}"
+                                            th:text="${user.username}">
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="priority">Priority</label>
+                                <select class="form-select" id="priority" th:field="*{priority.id}">
+                                    <option th:each="taskPriority: ${taskPriorities}"
+                                            th:value="${taskPriority.id}"
+                                            th:text="${taskPriority.name}"
+                                            th:class="${'text-' + taskPriority.color.toLowerCase}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted">
+                            <p>Created:
+                                <span th:text="${#temporals.format(task.createdDate, dateTimeFormat)}"></span>
+                            </p>
+                            <p>Modified:
+                                <span th:text="${#temporals.format(task.modifiedDate, dateTimeFormat)}"></span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="/modal/delete_dialog :: delete_dialog(link='/task/delete_comment')">
+</div>
+
+<div th:replace="/fragment/footer"/>
+
+<script type="text/javascript">
+    function onBtnEditCommentClick(suffix) {
+        document.getElementById("btnSaveComment" + suffix).hidden = false;
+        document.getElementById("btnSaveComment" + suffix).hidden = false;
+        document.getElementById("btnEditComment" + suffix).hidden = true;
+        document.getElementById("btnCancelComment" + suffix).hidden = false;
+
+        let commentDescriptionText = document.getElementById("commentDescriptionText" + suffix);
+        commentDescriptionText.hidden = true;
+
+        let commentDescriptionField = document.getElementById("commentDescription" + suffix);
+        commentDescriptionField.value = commentDescriptionText.textContent;
+        commentDescriptionField.hidden = false;
+    }
+
+    function onBtnCancelCommentClick(suffix) {
+        document.getElementById("btnSaveComment" + suffix).hidden = true;
+        document.getElementById("btnEditComment" + suffix).hidden = false;
+        document.getElementById("btnCancelComment" + suffix).hidden = true;
+
+        document.getElementById("commentDescription" + suffix).hidden = true;
+        document.getElementById("commentDescriptionText" + suffix).hidden = false;
+    }
+</script>
+
+</body>
+</html>

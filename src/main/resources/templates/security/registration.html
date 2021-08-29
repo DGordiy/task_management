@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+>
+
+<div th:replace="/fragment/header :: header(title='Registration')"/>
+
+<body>
+
+<div class="container">
+    <div class="card-header">
+        <h1>Registration form</h1>
+    </div>
+    <div class="card-body">
+        <form th:object="${user}" method="post" th:action="@{/registration}">
+            <div class="mb-3">
+                <label class="form-label" for="username">User name</label>
+                <input type="text" class="form-control" id="username" th:field="*{username}" placeholder="User name" >
+                <p th:if="${#fields.hasErrors('username')}" th:errorclass="error" th:errors="*{username}"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" class="form-control" id="password" th:field="*{password}" placeholder="password">
+                <p th:if="${#fields.hasErrors('password')}" th:errorclass="error" th:errors="*{password}"/>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" placeholder="name@example.com" th:field="*{email}">
+                <p th:if="${#fields.hasErrors('email')}" th:errorclass="error" th:errors="*{email}" />
+            </div>
+
+            <div class="error" th:if="${message}">
+                <p th:text="${message}"></p>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-primary">Register</button>
+                <a href="/login" class="btn btn-outline-secondary">Go to login page</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div th:replace="/fragment/footer"/>
+
+</body>
+</html>

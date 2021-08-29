@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+>
+
+<div th:replace="/fragment/header :: header(title='Registration')" />
+
+<body>
+
+<div class="container">
+
+    <p class="text-success" th:if="${message}" th:text="${message}"/>
+
+    <div class="card">
+        <div class="card-header">
+            <h1>Please sign In</h1>
+        </div>
+        <div class="card-body">
+            <form method="post" th:action="@{/login}">
+                <div class="mb-3">
+                    <label class="form-label" for="username" >User name</label>
+                    <input type="text" class="form-control" id="username" placeholder="User name" name="username">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="password" >Password</label>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="password">
+                </div>
+
+                <div class="form-text error" th:if="${param.error}">
+                    Invalid user name or password
+                </div>
+
+                <div>
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/registration}">Not have an account yet</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="/fragment/footer" />
+
+</body>
+
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/html">
+
+<div th:replace="/header :: header(title='Task comments')"></div>
+
+<body>
+
+<div th:replace="/menu"></div>
+
+<div class="container" th:fragment="comments(task)" th:with="dateTimeFormat='SHORT'">
+
+    <br/>
+    <h6 class="my-1" th:text="${'Comments (' + taskComments.size + ')'}"></h6>
+
+    <div th:each="taskComment : ${taskComments}">
+        <div class="card">
+            <div class="card-header">
+                <strong th:text="${taskComment.author.username}"></strong>
+                <small class="text-muted float-end" th:unless="${taskComment.modifiedDate.equals(taskComment.createdDate)}" th:text="${'/Modified: ' + #temporals.format(taskComment.modifiedDate, dateTimeFormat)}"></small>
+                <small class="text-muted float-end" th:text="${'Created: ' + #temporals.format(taskComment.createdDate, dateTimeFormat)}"></small>
+            </div>
+            <div class="card-body">
+                <!--<h5 class="card-title">Special title treatment</h5>-->
+                <form th:object="${taskComment}" th:action="@{/task/save_comment}"
+                      method="post">
+
+                    <input type="hidden" name="id" th:value="*{id}">
+
+                    <p class="card-text" th:id="*{'commentDescriptionText' + id}" th:text="*{description}"></p>
+
+                    <div class="mb-3">
+                      <textarea class="form-control" th:id="*{'commentDescription' + id}"
+                                name="description" rows="3" required hidden></textarea>
+                    </div>
+
+                    <!--<a th:href="@{/task/save_comment/{id}(id=${taskComment.id})}" class="btn btn-outline-secondary btn-sm">Edit</a>-->
+                    <button type="submit" th:id="*{'btnSaveComment' + id}" class="btn btn-outline-primary btn-sm"
+                            hidden>
+                        Save
+                    </button>
+
+                    <button type="button" th:id="*{'btnEditComment' + id}" class="btn btn-outline-secondary btn-sm"
+                            th:onclick="|onBtnEditCommentClick('*{id}')|">
+                        Edit
+                    </button>
+                    <button type="button" th:id="*{'btnCancelComment' + id}" class="btn btn-outline-secondary btn-sm"
+                            th:onclick="|onBtnCancelCommentClick('*{id}')|" hidden>
+                        Cancel
+                    </button>
+
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="deleteBtn"
+                            th:value="*{id}"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal">Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="/footer"></div>
+
+</body>
+</html>

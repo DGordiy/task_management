@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/html">
+
+<div th:replace="/fragment/header :: header(title='Tasks')"/>
+
+<body>
+
+<div th:replace="/fragment/menu"/>
+
+<div class="container-fluid" th:with="dateTimeFormat='SHORT'">
+
+<table class="table table-bordered table-striped table-hover" >
+  <caption class="caption-top">Tasks</caption>
+  <thead>
+  <tr>
+    <th scope="col">Id<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">Date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">Project<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=project'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=project&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">Name<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=name'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=name&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">Author<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=author'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=author&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">Assignee<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=assignee'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=assignee&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">End date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=endDate'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=endDate&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">Complete date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=completeDate'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=completeDate&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">Status<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=status'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=status&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col">Priority<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=priority'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=priority&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
+    <th scope="col"> <a href="/task/new" class="btn btn-outline-success">Add new </a> </th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="task : ${tasks}">
+    <td><span th:text="${task.id}"> </span></td>
+    <td><span th:text="${#temporals.format(task.createdDate, dateTimeFormat)}"> </span></td>
+    <td><span th:text="${task.project} ? ${task.project.name}"> </span></td>
+    <td><span th:text="${task.name}"> </span></td>
+    <td><span th:text="${task.author.username}"> </span></td>
+    <td><span th:text="${task.assignee} ? ${task.assignee.username}"> </span></td>
+    <td><span th:text="${task.endDate}"> </span></td>
+    <td><span th:text="${task.completeDate}"> </span></td>
+    <td><span th:text="${task.status.name}" th:class="${'text-' + task.status.color.toLowerCase}"> </span></td>
+    <td><span th:text="${task.priority.name}" th:class="${'text-' + task.priority.color.toLowerCase}"> </span></td>
+    <td>
+      <div class="btn-group" role="group">
+        <a th:href="@{/task/view(id=${task.id})}" class="btn btn-outline-primary">View</a>
+        <a th:if="${#authentication.principal.isAdmin}" th:href="@{/task/{id}(id=${task.id})}" class="btn btn-outline-secondary">Edit</a>
+        <button type="button" class="btn btn-outline-danger" id="deleteBtn" th:value="${task.id}" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
+      </div>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+  <div class="container">
+    <div class="row">
+
+      <div class="col-2">
+        Total Items: [[${totalItems}]]
+      </div>
+
+      <div class="col-2">
+        Page [[${currentPage}]] of [[${totalPages}]]
+      </div>
+
+      <div class="col">
+        <div class="btn-toolbar" role="toolbar">
+          <div class="btn-group me-2" role="group" aria-label="First items">
+            <a type="button" class="btn btn-outline-secondary" th:if="${currentPage > 1}" th:href="@{'/task?page=' + 1 + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">First</a>
+            <a type="button" class="btn btn-outline-secondary" th:if="${currentPage > 1}" th:href="@{'/task?page=' + ${currentPage - 1} + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">Previous</a>
+          </div>
+
+          <div class="btn-group me-2" role="group" aria-label="Pages">
+            <div th:each="i: ${#numbers.sequence(1, totalPages)}">
+              <a type="button" class="btn btn-outline-secondary" th:href="@{'/task?page=' + ${i} + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">[[${i}]]</a>
+            </div>
+          </div>
+
+          <div class="btn-group me-2" role="group" aria-label="Last items">
+            <a type="button" class="btn btn-outline-secondary" th:if="${currentPage < totalPages}"
+               th:href="@{'/task?page=' + ${currentPage + 1} + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">Next</a>
+            <a type="button" class="btn btn-outline-secondary" th:if="${currentPage < totalPages}" th:href="@{'/task?page=' + ${totalPages} + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">Last</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<div th:replace="/modal/delete_dialog :: delete_dialog(link='/task/delete')">
+</div>
+
+<div th:replace="/fragment/footer" />
+
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/html">
+
+<div th:replace="/fragment/header :: header(title='Task priorities')" />
+
+<body>
+
+<div th:replace="/fragment/menu"/>
+
+<div class="container">
+
+<table class="table table-striped table-hover">
+  <caption class="caption-top">Task priorities</caption>
+  <thead>
+  <tr>
+    <th scope="col"> Id </th>
+    <th scope="col"> Name </th>
+    <th scope="col"> Value </th>
+    <th scope="col"> <a href="/task_priority/new" class="btn btn-outline-success">Add new </a> </th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="taskPriority : ${taskPriorities}">
+    <td scope="row"><span th:text="${taskPriority.id}"> </span></td>
+    <td><span th:text="${taskPriority.name}" th:class="${'text-' + taskPriority.color.toLowerCase}"> </span></td>
+    <td><span th:text="${taskPriority.value}" > </span></td>
+
+    <td>
+      <div class="btn-group" role="group">
+          <a th:href="@{/task_priority/{id}(id=${taskPriority.id})}" class="btn btn-outline-secondary">Edit</a>
+          <button type="button" class="btn btn-outline-danger" id="deleteBtn" th:value="${taskPriority.id}" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
+      </div>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+</div>
+
+<div th:replace="/modal/delete_dialog :: delete_dialog(link='/task_priority/delete')">
+</div>
+
+<div th:replace="/fragment/footer" />
+
+</body>
+</html>

@@ -1,0 +1,48 @@
+<html lang="en" xmlns:th="http://www.w3.org/1999/html">
+
+<nav th:fragment="menu" class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand  bi-newspaper" href="/"></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDropdown">
+      <ul class="navbar-nav mr-auto">
+        <!--<li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>-->
+        <li class="nav-item">
+          <a class="nav-link" href="/project">Projects</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/task">Tasks</a>
+        </li>
+        <li th:if="${#authentication.principal.isAdmin}" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarCatalogsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Catalogs
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarCatalogsDropdown">
+            <li><a class="dropdown-item" href="/user">Users</a></li>
+            <li><a class="dropdown-item" href="/task_status">Task statuses</a></li>
+            <li><a class="dropdown-item" href="/task_priority">Task priorities</a></li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="nav-item dropdown">
+        <a th:text="${#authentication.principal.username}" class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">        </a>
+        <ul class="dropdown-menu" aria-labelledby="navbarUserDropdown">
+          <!--<li><a class="dropdown-item" href="/user">Users</a></li>
+          <li><a class="dropdown-item" href="/task_status">Task statuses</a></li>-->
+          <li>
+            <form class="d-flex dropdown-item" th:action="@{/logout}" method="post">
+              <button class="btn btn-outline-success btn-sm" type="submit">Sign Out</button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</nav>
+
+</html>
