@@ -89,7 +89,7 @@ public class TaskManagementRunner implements ApplicationRunner {
         String pass = passwordEncoder.encode("1");
 
         User user1 = new User();
-        user1.setUsername("John Snow");
+        user1.setUsername("admin");
         user1.setEmail("aaa@aa.com");
         user1.setPassword(pass);
         user1.setRoles(rolesAdmin);
@@ -110,15 +110,8 @@ public class TaskManagementRunner implements ApplicationRunner {
         userRepository.save(user3);
 
         //Tasks
-        Task task = new Task();
-        task.setName("Improving actions");
-        task.setAuthor(user1);
-        task.setDescription("We must do a lot of improving actions in this project");
-        task.setPriority(taskPriorityRepository.getById(2));
-        task.setStatus(taskStatusRepository.getById(1));
-        taskRepository.save(task);
-
-        for (int i = 0; i < 40; i++) {
+        Task task;
+        for (int i = 1; i < 10; i++) {
             task = new Task();
             task.setName("Test task " + i);
             task.setAuthor(user1);
@@ -126,24 +119,49 @@ public class TaskManagementRunner implements ApplicationRunner {
             task.setPriority(taskPriorityRepository.getById(2));
             task.setStatus(taskStatusRepository.getById(1));
             taskRepository.save(task);
+
+            //Task comment
+            TaskComment taskComment = new TaskComment();
+            taskComment.setAuthor(user2);
+            taskComment.setTask(task);
+            taskComment.setDescription("Task comment from user1......... :)");
+            taskCommentRepository.save(taskComment);
         }
 
-        task = new Task();
-        task.setName("Developing front-end");
-        task.setAuthor(user1);
-        task.setDescription("Front-end in this application must be more comfortable");
-        task.setPriority(taskPriorityRepository.getById(3));
-        task.setStatus(taskStatusRepository.getById(2));
-        task.setAssignee(user3);
-        task.getUsers().add(user1);
-        task.getUsers().add(user3);
-        taskRepository.save(task);
+        for (int i = 11; i < 20; i++) {
+            task = new Task();
+            task.setName("Test task " + i);
+            task.setAuthor(user1);
+            task.setDescription("Test description " + i);
+            task.setPriority(taskPriorityRepository.getById(3));
+            task.setStatus(taskStatusRepository.getById(2));
+            task.setAssignee(user3);
+            taskRepository.save(task);
 
-        //Task comment
-        TaskComment taskComment = new TaskComment();
-        taskComment.setAuthor(user2);
-        taskComment.setTask(task);
-        taskComment.setDescription("Explain the description of the task. I don't understand what you did you mean.");
-        taskCommentRepository.save(taskComment);
+            //Task comment
+            TaskComment taskComment = new TaskComment();
+            taskComment.setAuthor(user3);
+            taskComment.setTask(task);
+            taskComment.setDescription("Some comment from user2..... :)");
+            taskCommentRepository.save(taskComment);
+        }
+
+        for (int i = 21; i < 30; i++) {
+            task = new Task();
+            task.setName("Test task " + i);
+            task.setAuthor(user1);
+            task.setDescription("Test description " + i);
+            task.setPriority(taskPriorityRepository.getById(3));
+            task.setStatus(taskStatusRepository.getById(2));
+            task.setAssignee(user2);
+            taskRepository.save(task);
+
+            //Task comment
+            TaskComment taskComment = new TaskComment();
+            taskComment.setAuthor(user1);
+            taskComment.setTask(task);
+            taskComment.setDescription("Some comment from admin..... :)");
+            taskCommentRepository.save(taskComment);
+        }
     }
 }

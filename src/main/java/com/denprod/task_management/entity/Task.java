@@ -71,8 +71,9 @@ public class Task {
 
     private LocalDateTime completeDate;
 
-    @ManyToMany
-    @JoinTable(joinColumns = @JoinColumn(name = "task_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
+    @ManyToMany(cascade = {CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JoinTable(joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> users = new HashSet<>();
 
     @PrePersist
@@ -98,6 +99,17 @@ public class Task {
         }
         if (!users.contains(author)) {
             users.add(author);
+        }
+    }
+
+    //Thymeleaf hardly returned entity into TaskController when the empty references are matched as entity with all fields null
+    //It must change this fields to null value
+    public void correctEmptyFields() {
+        if (assignee != null && assignee.getId() == null) {
+            setAssignee(null);
+        }
+        if (project != null && project.getId() == null) {
+            setProject(null);
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.denprod.task_management.entity.security;
 
+import com.denprod.task_management.entity.Task;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,6 +9,7 @@ import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -38,6 +40,11 @@ public class User implements UserDetails {
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
     private Set<Role> roles;
+
+//    @ManyToMany(cascade = {
+//            CascadeType.MERGE},
+//            mappedBy = "users", fetch = FetchType.LAZY)
+//    private Set<Task> tasks;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -3,94 +3,213 @@
 
 <div th:replace="/fragment/header :: header(title='Tasks')"/>
 
-<body>
+<body onload="onFilterNameChange()">
 
 <div th:replace="/fragment/menu"/>
 
-<div class="container-fluid" th:with="dateTimeFormat='SHORT'">
+<div class="container-fluid" th:with="dateTimeFormat='SHORT', filters=|filter_name=${filterName}&filter_value=${filterValue ?: ''}|, sorts=|sort_by=${sortBy}&sort_dir=${sortDir}|">
 
-<table class="table table-bordered table-striped table-hover" >
-  <caption class="caption-top">Tasks</caption>
-  <thead>
-  <tr>
-    <th scope="col">Id<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">Date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">Project<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=project'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=project&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">Name<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=name'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=name&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">Author<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=author'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=author&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">Assignee<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=assignee'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=assignee&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">End date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=endDate'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=endDate&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">Complete date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=completeDate'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=completeDate&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">Status<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=status'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=status&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col">Priority<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=priority'}" class="bi bi-sort-up"></a><a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=priority&sort_dir=desc'}" class="bi bi-sort-down"></a></th>
-    <th scope="col"> <a href="/task/new" class="btn btn-outline-success">Add new </a> </th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="task : ${tasks}">
-    <td><span th:text="${task.id}"> </span></td>
-    <td><span th:text="${#temporals.format(task.createdDate, dateTimeFormat)}"> </span></td>
-    <td><span th:text="${task.project} ? ${task.project.name}"> </span></td>
-    <td><span th:text="${task.name}"> </span></td>
-    <td><span th:text="${task.author.username}"> </span></td>
-    <td><span th:text="${task.assignee} ? ${task.assignee.username}"> </span></td>
-    <td><span th:text="${task.endDate}"> </span></td>
-    <td><span th:text="${task.completeDate}"> </span></td>
-    <td><span th:text="${task.status.name}" th:class="${'text-' + task.status.color.toLowerCase}"> </span></td>
-    <td><span th:text="${task.priority.name}" th:class="${'text-' + task.priority.color.toLowerCase}"> </span></td>
-    <td>
-      <div class="btn-group" role="group">
-        <a th:href="@{/task/view(id=${task.id})}" class="btn btn-outline-primary">View</a>
-        <a th:if="${#authentication.principal.isAdmin}" th:href="@{/task/{id}(id=${task.id})}" class="btn btn-outline-secondary">Edit</a>
-        <button type="button" class="btn btn-outline-danger" id="deleteBtn" th:value="${task.id}" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
-      </div>
-    </td>
-  </tr>
-  </tbody>
-</table>
-
-  <div class="container">
-    <div class="row">
-
-      <div class="col-2">
-        Total Items: [[${totalItems}]]
-      </div>
-
-      <div class="col-2">
-        Page [[${currentPage}]] of [[${totalPages}]]
-      </div>
-
-      <div class="col">
-        <div class="btn-toolbar" role="toolbar">
-          <div class="btn-group me-2" role="group" aria-label="First items">
-            <a type="button" class="btn btn-outline-secondary" th:if="${currentPage > 1}" th:href="@{'/task?page=' + 1 + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">First</a>
-            <a type="button" class="btn btn-outline-secondary" th:if="${currentPage > 1}" th:href="@{'/task?page=' + ${currentPage - 1} + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">Previous</a>
-          </div>
-
-          <div class="btn-group me-2" role="group" aria-label="Pages">
-            <div th:each="i: ${#numbers.sequence(1, totalPages)}">
-              <a type="button" class="btn btn-outline-secondary" th:href="@{'/task?page=' + ${i} + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">[[${i}]]</a>
+    <form th:action="|/task?page=${currentPage}&${filters}&${sorts}|" method="get">
+        <div class="input-group mb-3">
+            <div class="form-group row">
+                <label class="col-sm-3" for="filter">Filter</label>
+                <div class="col-sm-8">
+                    <select class="form-select" id="filter" name="filter_name" onchange="onFilterNameChange();">
+                        <option th:each="field: ${filterFields}"
+                                th:value="${field.key}"
+                                th:text="${field.value}"
+                                th:selected="${field.key == filterName}">
+                        </option>
+                    </select>
+                </div>
             </div>
-          </div>
 
-          <div class="btn-group me-2" role="group" aria-label="Last items">
-            <a type="button" class="btn btn-outline-secondary" th:if="${currentPage < totalPages}"
-               th:href="@{'/task?page=' + ${currentPage + 1} + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">Next</a>
-            <a type="button" class="btn btn-outline-secondary" th:if="${currentPage < totalPages}" th:href="@{'/task?page=' + ${totalPages} + '&sort_by=' + ${sortBy} + '&sort_dir=' + ${sortDir}}">Last</a>
-          </div>
+            <input id="filterInput" type="search" class="form-control" th:value="${filterValue}"
+                   placeholder="Search text"
+                   aria-label="Search text" aria-describedby="search_btn">
+
+            <select class="form-select" id="filterUser">
+                <option th:each="entity: ${allUsers}"
+                        th:value="${entity.id}"
+                        th:text="${entity.username}"
+                        th:selected="${entity.id.toString() == filterValue}">
+                </option>
+            </select>
+
+            <select class="form-select" id="filterProject">
+                <option th:each="entity: ${projects}"
+                        th:value="${entity.id}"
+                        th:text="${entity.name}"
+                        th:selected="${entity.id.toString() == filterValue}">
+                </option>
+            </select>
+
+            <div class="input-group-append">
+                <button id="search_btn" class="btn btn-outline-secondary" type="submit">
+                    <i class="bi bi-search" role="img" aria-label="search button"></i>
+                </button>
+            </div>
         </div>
-      </div>
+    </form>
+
+    <table class="table table-bordered table-striped table-hover">
+        <caption class="caption-top">Tasks</caption>
+        <thead>
+        <tr>
+            <th scope="col">Id<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id' + '&' + ${filters}}"
+                                 class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a>
+            </th>
+            <th scope="col">Date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id' + '&' + ${filters}}"
+                                   class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=id&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a>
+            </th>
+            <th scope="col">Project<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=project' + '&' + ${filters}}"
+                                      class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=project&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a></th>
+            <th scope="col">Name<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=name' + '&' + ${filters}}"
+                                   class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=name&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a>
+            </th>
+            <th scope="col">Author<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=author' + '&' + ${filters}}"
+                                     class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=author&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a></th>
+            <th scope="col">Assignee<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=assignee' + '&' + ${filters}}"
+                                       class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=assignee&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a></th>
+            <th scope="col">End date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=endDate' + '&' + ${filters}}"
+                                       class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=endDate&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a></th>
+            <th scope="col">Complete date<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=completeDate' + '&' + ${filters}}"
+                                            class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=completeDate&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a></th>
+            <th scope="col">Status<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=status' + '&' + ${filters}}"
+                                     class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=status&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a></th>
+            <th scope="col">Priority<a th:href="@{'/task?page=' + ${currentPage} + '&sort_by=priority' + '&' + ${filters}}"
+                                       class="bi bi-sort-up"></a><a
+                    th:href="@{'/task?page=' + ${currentPage} + '&sort_by=priority&sort_dir=desc' + '&' + ${filters}}"
+                    class="bi bi-sort-down"></a></th>
+            <th scope="col"><a href="/task/new" class="btn btn-outline-success">Add new </a></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="task : ${tasks}">
+            <td><span th:text="${task.id}"> </span></td>
+            <td><span th:text="${#temporals.format(task.createdDate, dateTimeFormat)}"> </span></td>
+            <td><span th:text="${task.project} ? ${task.project.name}"> </span></td>
+            <td><span th:text="${task.name}"> </span></td>
+            <td><span th:text="${task.author.username}"> </span></td>
+            <td><span th:text="${task.assignee} ? ${task.assignee.username}"> </span></td>
+            <td><span th:text="${task.endDate}"> </span></td>
+            <td><span th:text="${task.completeDate}"> </span></td>
+            <td><span th:text="${task.status.name}" th:class="${'text-' + task.status.color.toLowerCase}"> </span></td>
+            <td><span th:text="${task.priority.name}" th:class="${'text-' + task.priority.color.toLowerCase}"> </span>
+            </td>
+            <td>
+                <div class="btn-group" role="group">
+                    <a th:href="@{/task/view(id=${task.id})}" class="btn btn-outline-primary">View</a>
+                    <a th:if="${#authentication.principal.isAdmin}" th:href="@{/task/{id}(id=${task.id})}"
+                       class="btn btn-outline-secondary">Edit</a>
+                    <button type="button" class="btn btn-outline-danger" id="deleteBtn" th:value="${task.id}"
+                            data-bs-toggle="modal" data-bs-target="#deleteModal">Delete
+                    </button>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="container">
+        <div class="row">
+
+            <div class="col-2">
+                Total Items: [[${totalItems}]]
+            </div>
+
+            <div th:if="${totalItems > 0}" class="col-2">
+                Page [[${currentPage}]] of [[${totalPages}]]
+            </div>
+
+            <div th:if="${totalItems > 0}" class="col">
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 1} ? disabled : ''">
+                            <a class="page-link"
+                               th:href="@{'/task?page=' + ${currentPage - 1} + '&' + ${sorts} + '&' + ${filters}}"
+                               tabindex="-1">Previous</a>
+                        </li>
+
+                        <li th:each="i: ${#numbers.sequence(1, totalPages)}">
+                            <a class="page-link"
+                               th:href="@{'/task?page=' + ${i} + '&' + ${sorts} + '&' + ${filters}}">[[${i}]]</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage == totalPages} ? disabled : ''">
+                            <a class="page-link"
+                               th:href="@{'/task?page=' + ${currentPage + 1} + '&' + ${sorts} + '&' + ${filters}}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            </div>
+
+        </div>
 
     </div>
-
-  </div>
 
 </div>
 
 <div th:replace="/modal/delete_dialog :: delete_dialog(link='/task/delete')">
 </div>
 
-<div th:replace="/fragment/footer" />
+<div th:replace="/fragment/footer"/>
+
+<script type="text/javascript">
+    function onFilterNameChange() {
+        let field = document.getElementById("filter");
+        let name = field.options[field.selectedIndex].value;
+        switch (name) {
+            case "id":
+            case "name":
+                setFieldHidden("filterInput", false);
+                setFieldHidden("filterUser", true);
+                setFieldHidden("filterProject", true);
+                break;
+            case "author":
+            case "assignee":
+                setFieldHidden("filterInput", true);
+                setFieldHidden("filterUser", false);
+                setFieldHidden("filterProject", true);
+                break;
+            case "project":
+                setFieldHidden("filterInput", true);
+                setFieldHidden("filterUser", true);
+                setFieldHidden("filterProject", false);
+        }
+    }
+
+    function setFieldHidden(fieldName, hidden) {
+        let field = document.getElementById(fieldName);
+
+        if (hidden) {
+            field.hidden = true;
+            field.removeAttribute("name");
+        } else {
+            field.hidden = false;
+            field.setAttribute("name", "filter_value");
+        }
+    }
+</script>
 
 </body>
 </html>

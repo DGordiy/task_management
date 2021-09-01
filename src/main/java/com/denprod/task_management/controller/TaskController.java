@@ -4,6 +4,8 @@ import com.denprod.task_management.entity.Task;
 import com.denprod.task_management.entity.TaskComment;
 import com.denprod.task_management.entity.security.User;
 import com.denprod.task_management.repository.*;
+import com.denprod.task_management.service.SearchCriteria;
+import com.denprod.task_management.service.SearchOperator;
 import com.denprod.task_management.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -11,12 +13,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @RequestMapping("/task")
 @Controller
@@ -46,6 +47,8 @@ public class TaskController {
     public String showList(@RequestParam(name = "page", required = false) Integer pageNumber,
                            @RequestParam(name = "sort_by", required = false) String sortBy,
                            @RequestParam(name = "sort_dir", required = false) String sortDir,
+                           @RequestParam(name = "filter_name", required = false) String filterName,
+                           @RequestParam(name = "filter_value", required = false) String filterValue,
                            Model model) {
 
         if (pageNumber == null) {
@@ -60,7 +63,36 @@ public class TaskController {
             sortDir = "asc";
         }
 
-        Page<Task> pages = taskService.findPaginated(pageNumber, PAGE_SIZE, sortBy, sortDir);
+        if (filterName == null) {
+            filterName = "id";
+        }
+
+        Object searchVal = null;
+        if (filterValue != null && !filterValue.isBlank()) {
+            switch (filterName) {
+                case "id":
+                    searchVal = Integer.valueOf(filterValue);
+                    break;
+                case "author":
+                case "assignee":
+                    searchVal = userRepository.getById(Integer.valueOf(filterValue));
+                    break;
+                case "project":
+                    searchVal = projectRepository.getById(Integer.valueOf(filterValue));
+                    break;
+                default:
+                    searchVal = filterValue.trim();
+            }
+        }
+
+        Page<Task> pages;
+        if (searchVal == null
+                || searchVal instanceof Integer && searchVal.equals(0)
+                || searchVal instanceof String && ((String) searchVal).isBlank()) {
+            pages = taskService.findPaginated(pageNumber, PAGE_SIZE, sortBy, sortDir);
+        } else {
+            pages = taskService.findPaginated(pageNumber, PAGE_SIZE, sortBy, sortDir, new SearchCriteria(filterName, searchVal, searchVal instanceof String ? SearchOperator.LIKE : SearchOperator.EQ));
+        }
         List<Task> taskList = pages.getContent();
 
         model.addAttribute("tasks", taskList);
@@ -69,6 +101,8 @@ public class TaskController {
         model.addAttribute("totalPages", pages.getTotalPages());
         model.addAttribute("sortBy", sortBy);
         model.addAttribute("sortDir", sortDir);
+        model.addAttribute("filterName", filterName);
+        model.addAttribute("filterValue", filterValue);
 
         return "task_list";
     }
@@ -102,18 +136,24 @@ public class TaskController {
     }
 
     @PostMapping("/save")
-    public String saveEntity(@Valid Task entity, @RequestParam Map<String, String> form, BindingResult result) {
+    public String saveEntity(@Valid Task entity, BindingResult result, @RequestParam Map<String, String> form) {
+        try {
+            Set<User> users = entity.getUsers();
+            users.clear();
+            for (User user: userRepository.findAll()) {
+                if (form.containsKey("user" + user.getId())) {
+                    users.add(user);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         if (result.hasErrors()) {
             return "task_edit";
         }
 
-        Set<User> users = entity.getUsers();
-        for (User user: userRepository.findAll()) {
-            if (form.containsKey("user" + user.getId())) {
-                users.add(user);
-            }
-        }
-
+        entity.correctEmptyFields();
         taskService.save(entity);
 
         return "redirect:/task";
@@ -125,6 +165,7 @@ public class TaskController {
             return "task_view";
         }
 
+        entity.correctEmptyFields();
         Task task = taskService.getById(entity.getId());
         entity.setUsers(task.getUsers());
         taskService.save(entity);
@@ -174,9 +215,9 @@ public class TaskController {
         model.addAttribute("taskStatuses", taskStatusRepository.findAll());
     }
 
-    @ModelAttribute("users")
+    @ModelAttribute("allUsers")
     private void prepareUsers(Model model) {
-        model.addAttribute("users", userRepository.findAll());
+        model.addAttribute("allUsers", userRepository.findAll());
     }
 
     @ModelAttribute("projects")
@@ -184,4 +225,14 @@ public class TaskController {
         model.addAttribute("projects", projectRepository.findAll());
     }
 
+    @ModelAttribute("filterFields")
+    private void prepareFilterFields(Model model) {
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("project", "Project");
+        fields.put("assignee", "Assignee");
+        fields.put("author", "Author");
+        fields.put("id", "Id");
+        fields.put("name", "Name");
+        model.addAttribute("filterFields", fields);
+    }
 }

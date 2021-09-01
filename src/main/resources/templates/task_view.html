@@ -56,6 +56,7 @@
                             <div class="mb-3">
                                 <label for="assignee">Assignee</label>
                                 <select class="form-select" id="assignee" th:field="*{assignee.id}">
+                                    <option value=""></option>
                                     <option th:each="user: ${task.users}"
                                             th:value="${user.id}"
                                             th:text="${user.username}">
